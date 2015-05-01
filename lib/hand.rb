@@ -6,7 +6,7 @@ class Hand
   def initialize(cards = [], deck = nil)
     @cards = cards
     @deck = deck
-    @value = 0
+    @hand_rank = 0
 
     check_hand if @cards.count == 5
   end
@@ -21,7 +21,7 @@ class Hand
   end
 
   def <=>(other_hand)
-    case @value <=> other_hand.value
+    case hand_rank <=> other_hand.hand_rank
     when 1 return 1
     when -1 return -1
     else
@@ -30,40 +30,56 @@ class Hand
   end
 
   protected
-  attr_reader :value
+  attr_reader :value, :ranks
 
-  def values
+  def ranks
+    @cards.map(&:value)
+  end
 
   private
 
   def break_tie_with(other_hand)
-    case @value
+    case hand_rank
     when 1, 5, 6, 9 then easy_compare(other_hand)
-    when 2 then easy_compare
+    when 2, 4, 8 then single_pair_compare(other_hand)
+    when 3 then 0 # NOT DONE
+    when 7 then 0
     end
   end
 
   def easy_compare(other_hand)
-    #iterate over each thing, 10**n multiply by value and add together and see whose dick is bigger
+    val1 = 0
+    ranks.each_with_index { |rank, i| val1 += rank * (10 ** i) }
 
+    val2 = 0
+    other_hand.ranks.each_with_index { |rank2, j| val2 += rank2 * (10 ** i) }
+
+    val1 <=> val2
   end
 
   def pair_compare(other_hand)
-    our_pair = @cards.map(&:value) - @cards.map(&:value).uniq
-    their_pair = other_hand.cards.map(&:value) - other_hand.cards.map(&:value).uniq
-    our_pair.first <=> their_pair.first
+    our_pairs = ranks - ranks.uniq
+    their_pairs = other_hand.ranks - other_hand.ranks.uniq
+    our_pairs.sort.first <=> their_pairs.sort.first
+  end
+
+  def single_pair_compare(other_hand)
+    case pair_compare(other_hand)
+    when 1 then 1
+    when -1 then -1
+    else easy_compare(other_hand)
   end
 
   def check_hand
-    @value = 1 if high_card
-    @value = 2 if pair
-    @value = 3 if two_pair
-    @value = 4 if trips
-    @value = 5 if straight
-    @value = 6 if flush
-    @value = 7 if full_house
-    @value = 8 if quads
-    @value = 9 if straight_flush
+    hand_rank = 1 if high_card
+    hand_rank = 2 if pair
+    hand_rank = 3 if two_pair
+    hand_rank = 4 if trips
+    hand_rank = 5 if straight
+    hand_rank = 6 if flush
+    hand_rank = 7 if full_house
+    hand_rank = 8 if quads
+    hand_rank = 9 if straight_flush
   end
 
   def high_card
