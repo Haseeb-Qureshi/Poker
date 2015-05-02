@@ -42,7 +42,7 @@ describe Hand do
     let(:a_pair) { pair }
     let(:a_two_pair) { two_pair }
     let(:a_trips) { trips }
-    let(:a_straight) { high_card }
+    let(:a_straight) { straight }
     let(:a_flush) { flush }
     let(:a_full_house) { full_house }
     let(:a_quads) { quads }
@@ -89,49 +89,49 @@ describe Hand do
         end
 
         specify "equivalent straight equals other straight" do
-          other_straight = parse("2c3h4d5c6h")
+          other_straight = Hand.new(parse("2c3h4d5c6h"))
           expect(a_straight).to eq(other_straight)
         end
 
         specify "equivalent flush equals other flush" do
-          other_flush = parse("3c6c9c4c5c")
+          other_flush = Hand.new(parse("3c6c9c4c5c"))
           expect(a_flush).to eq(other_flush)
         end
       end
 
       context "tie-breakers" do
         specify "ace-high should beat ten-high" do
-          ace_high = parse("Ac5h4c9cTd")
+          ace_high = Hand.new(parse('Ac5h4c9cTd'))
           expect(ace_high).to be > a_high_card
         end
 
         specify "higher two pair beats lower two pair" do
-          higher_two_pair = parse('2d2c9h9sAd')
+          higher_two_pair = Hand.new(parse('2d2c9h9sAd'))
           expect(higher_two_pair).to be > a_two_pair
         end
 
         specify "higher two pair(second) beats lower two pair (second)" do
-          higher_two_pair = parse('4c4h3h3c8d')
+          higher_two_pair = Hand.new(parse('4c4h3h3c8d'))
           expect(higher_two_pair).to be > a_two_pair
         end
 
         specify "higher straight beats lower straight" do
-          higher_straight = parse('3h4h5c6c7d')
+          higher_straight = Hand.new(parse('3h4h5c6c7d'))
           expect(higher_straight).to be > a_straight
         end
 
         specify "higher flush beats lower flush" do
-          higher_flush = parse('8h9hKhAh4h')
+          higher_flush = Hand.new(parse('8h9hKhAh4h'))
           expect(higher_flush).to be > a_flush
         end
 
         specify "bigger full house beats lower full house" do
-          big_full = parse('AhAdAc9s9d')
+          big_full = Hand.new(parse('AhAdAc9s9d'))
           expect(big_full).to be > a_full_house
         end
 
         specify "bigger full house(2nd) beats lower full house(2nd)" do
-          big_full = parse('5h5c5d4d4h')
+          big_full = Hand.new(parse('5h5c5d4d4h'))
           expect(big_full).to be > a_full_house
         end
       end
