@@ -6,6 +6,16 @@ HAND_VALUES = {
   :A => 14
 }
 
+def parse(str)
+  each_card = str.scan(/../)
+  each_card.each_with_object([]) do |card, cards|
+    val = card[0]
+    val = HAND_VALUES[val.to_sym] ? HAND_VALUES[val.to_sym] : val.to_i
+    suit = card[1].to_sym
+    cards << double('card', value: val, suit: suit)
+  end
+end
+
 def high_card
   Hand.new(parse('3h4h7c9cTh'))
 end
@@ -40,16 +50,4 @@ end
 
 def straight_flush
   Hand.new(parse('3h4h5h6h7h'))
-end
-
-def parse(str)
-  cards = []
-  hand_strs = str.scan(/../)
-  hand_strs.each do |hand_str|
-    val = hand_str[0]
-    val = HAND_VALUES[val.to_sym] ? HAND_VALUES[val.to_sym] : val.to_i
-    suit = hand_str[1].to_sym
-    cards << double('card', value: val, suit: suit)
-  end
-  cards
 end

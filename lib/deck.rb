@@ -1,13 +1,11 @@
 require_relative 'card'
 
 class Deck
-
   SUITS = [:s, :d, :c, :h]
 
   def initialize
-    @cards = []
-    generate_cards!
-    @cards.shuffle!
+    generate_cards
+    shuffle_cards
   end
 
   def take_one
@@ -19,7 +17,12 @@ class Deck
   end
 
   private
-  def generate_cards!
-    (2..14).each { |val| SUITS.each { |suit| @cards << Card.new(val, suit) } }
+  def generate_cards
+    @cards = []
+    (2..14).each { |rank| SUITS.each { |suit| @cards << Card.new(rank, suit) } }
+  end
+
+  def shuffle_cards
+    @cards.shuffle!
   end
 end

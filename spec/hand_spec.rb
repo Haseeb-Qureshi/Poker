@@ -50,6 +50,7 @@ describe Hand do
     let(:a_straight_flush) { straight_flush }
 
     describe "#<=>" do
+
       context "higher vs lower" do
         specify "straight_flush beats quads" do
           expect(a_straight_flush).to be > a_quads

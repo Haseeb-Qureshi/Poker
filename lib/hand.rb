@@ -2,7 +2,6 @@ require 'byebug'
 
 class Hand
   include Comparable
-
   attr_reader :cards, :hand_rank, :ranks
 
   def initialize(cards = [], deck = nil)
@@ -61,11 +60,10 @@ class Hand
   end
 
   def trips
-    duplicates = @cards.inject(Hash.new(0)) do |counts, card|
+    @cards.inject(Hash.new(0)) do |counts, card|
       counts[card.value] += 1
       counts
-    end
-    duplicates.values.max == 3
+    end.values.max == 3
   end
 
   def straight
@@ -82,11 +80,10 @@ class Hand
   end
 
   def quads
-    duplicates = @cards.inject(Hash.new(0)) do |counts, card|
+    @cards.inject(Hash.new(0)) do |counts, card|
       counts[card.value] += 1
       counts
-    end
-    duplicates.values.max == 4
+    end.values.max == 4
   end
 
   def straight_flush
@@ -97,41 +94,43 @@ class Hand
 
   def break_tie_with(other_hand)
     case @hand_rank
-    when 1, 5, 6, 9 then easy_compare(other_hand)
-    when 2, 4, 8 then single_pair_compare(other_hand)
-    when 3, 7 then two_pair_compare(other_hand)
+    when 1, 5, 6, 9 then high_card_comparison(other_hand)
+    when 2, 4, 8 then single_pair_comparison(other_hand)
+    when 3, 7 then multiple_pair_comparison(other_hand)
     end
   end
 
-  def easy_compare(other_hand)
+  def high_card_comparison(other_hand)
     val1 = 0
     ranks.sort.each_with_index { |rank, i| val1 += rank * (10 ** i) }
 
     val2 = 0
-    other_hand.ranks.sort.each_with_index { |rank2, j| val2 += rank2 * (10 ** j) }
+    other_hand.ranks.sort.each_with_index { |rank, j| val2 += rank * (10 ** j) }
 
     val1 <=> val2
   end
 
-  def pair_compare(other_hand)
+  def single_pair_comparison(other_hand)
+    case compare_pair(other_hand)
+    when 1 then 1
+    when -1 then -1
+    else high_card_comparison(other_hand)
+    end
+  end
+
+  def compare_pair(other_hand)
     our_pair = ranks.detect { |rank| ranks.count(rank) > 1 }
     their_pair = other_hand.ranks.detect { |rank| ranks.count(rank) > 1 }
     our_pair <=> their_pair
   end
 
-  def single_pair_compare(other_hand)
-    case pair_compare(other_hand)
-    when 1 then 1
-    when -1 then -1
-    else easy_compare(other_hand)
-    end
-  end
-
-  def two_pair_compare(other_hand)
-    our_pairs = ranks.select { |rank| ranks.count(rank) > 1 }.sort
+  def multiple_pair_comparison(other_hand)
+    our_pairs = ranks.select do |rank|
+      ranks.count(rank) > 1
+    end.sort!
     their_pairs = other_hand.ranks.select do |rank|
       other_hand.ranks.count(rank) > 1
-    end.sort
+    end.sort!
 
     case our_pairs.last <=> their_pairs.last
     when 1 then 1
