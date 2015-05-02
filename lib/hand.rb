@@ -49,15 +49,15 @@ class Hand
   end
 
   def high_card
-    @cards.map(&:value).uniq.size == 5
+    ranks.uniq.size == 5
   end
 
   def pair
-    @cards.map(&:value).uniq.size == 4
+    ranks.uniq.size == 4
   end
 
   def two_pair
-    @cards.map(&:value).uniq.size == 3
+    ranks.uniq.size == 3
   end
 
   def trips
@@ -70,7 +70,7 @@ class Hand
 
   def straight
     start = @cards.first.value
-    @cards.map(&:value) == (start..start + 4).to_a
+    ranks == (start..start + 4).to_a
   end
 
   def flush
@@ -78,7 +78,7 @@ class Hand
   end
 
   def full_house
-    @cards.map(&:value).uniq.size == 2
+    ranks.uniq.size == 2
   end
 
   def quads

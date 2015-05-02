@@ -11,13 +11,15 @@ describe Deck do
     end
 
     describe "#take_one" do
-      let(:deck2) { Deck.new }
+      # let(:deck2) { Deck.new }
 
-      it "deals a random card" do
-        expect(deck.take_one).to_not eq(deck2.take_one)
+      it "deals different cards" do
+        expect(deck.take_one).to_not eq(deck.take_one)
       end
+
       it "gives you a card" do
-        expect(deck.take_one.class).to be(Card)
+        # expect(deck.take_one.class).to be(Card)
+        expect(deck.take_one).to be_a(Card)
       end
     end
   end

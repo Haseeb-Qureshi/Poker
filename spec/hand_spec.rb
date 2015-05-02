@@ -23,6 +23,7 @@ describe Hand do
     describe "#discard_card" do
       context "when has a card" do
         before(:each) { hand.take_card }
+
         it "should discard a card" do
           hand.discard_card(0)
           expect(hand.cards).to be_empty
@@ -133,6 +134,16 @@ describe Hand do
         specify "bigger full house(2nd) beats lower full house(2nd)" do
           big_full = Hand.new(parse('5h5c5d4d4h'))
           expect(big_full).to be > a_full_house
+        end
+
+        specify "pair with higher kicker beats one with lower kicker" do
+          low_kick_pair = Hand.new(parse('4h4s3h5d6h'))
+          expect(a_pair).to be > low_kick_pair
+        end
+
+        specify "two pair with higher kicker beats same with lower kicker" do
+          low_kick_two_pair = Hand.new(parse('2h2s4h4d7h'))
+          expect(two_pair).to be > low_kick_two_pair
         end
       end
     end
