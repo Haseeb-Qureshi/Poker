@@ -51,7 +51,7 @@ describe Hand do
 
     describe "#<=>" do
 
-      context "higher vs lower" do
+      context "higher rank vs lower rank" do
         specify "straight_flush beats quads" do
           expect(a_straight_flush).to be > a_quads
         end
@@ -85,7 +85,7 @@ describe Hand do
         end
       end
 
-      context "same hand" do
+      context "splits" do
         specify "trips equals other trips" do
           expect(a_trips).to eq(a_trips)
         end
