@@ -2,7 +2,7 @@ require 'hand'
 require_relative 'support/hand_spec_helper'
 
 describe Hand do
-  describe "dealing methods" do
+  describe "hand methods" do
     let(:new_card) { double(:new_card, value: 4, suit: :s) }
     let(:deck) { double('deck', take_one: new_card) }
     subject(:hand) { Hand.new([], deck) }
