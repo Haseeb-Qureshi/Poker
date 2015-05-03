@@ -49,44 +49,58 @@ class Interface
     @deck = deck
     @cursor = [0, 0]
     @cards = [@card1, @card2, @card3, @card4, @card5]
-    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
-    @buttons = [@bet_raise, @check_call, @fold]
   end
 
-  def new_turn
-    @card1 = @player.cards[0]
-    @card2 = @player.cards[1]
-    @card3 = @player.cards[2]
-    @card4 = @player.cards[3]
-    @card5 = @player.cards[4]
+  def set_new_turn
+    @card1 = generate_card_image(@player.cards[0])
+    @card2 = generate_card_image(@player.cards[1])
+    @card3 = generate_card_image(@player.cards[2])
+    @card4 = generate_card_image(@player.cards[3])
+    @card5 = generate_card_image(@player.cards[4])
     @discard1 = Button.discard
     @discard2 = Button.discard
     @discard3 = Button.discard
     @discard4 = Button.discard
     @discard5 = Button.discard
-    @bet_raise = Button.bet #TERNARY OPERATOR HERE?
-    @check_call = Button.check #AND HERE?
     @fold = Button.fold
+    init_images
   end
 
-  def do other stuff
-  # IF IT'S TIME TO RAISE THEN CREATE A
+  def set_first_to_bet
+    @bet_raise = Button.bet
+    @check_call = Button.check
+    init_images
+  end
+
+  def set_facing_a_bet
+    @bet_raise = Button.raise
+    @check_call = Button.call
+    init_images
+  end
+
+  def set_final_round
+    @discards = []
+  end
+
+  def set_showdown
+    @cpu_card1 = generate_card_image(@computer.cards[0])
+    @cpu_card2 = generate_card_image(@computer.cards[1])
+    @cpu_card3 = generate_card_image(@computer.cards[2])
+    @cpu_card4 = generate_card_image(@computer.cards[3])
+    @cpu_card5 = generate_card_image(@computer.cards[4])
+  end
 
   def render(player_bankroll, computer_bankroll, cards)
     system 'clear'
     puts ("Player bankroll: " + "1000".green).rjust(90)
     puts ("Computer bankroll: " + "1000".yellow).rjust(90)
-    card1 = @deck.take_one
-    card2 = @deck.take_one
-    card3 = @deck.take_one
-    card4 = @deck.take_one
-    card5 = @deck.take_one
-    str1 = generate_card_image(card1)
-    str2 = generate_card_image(card2)
-    str3 = generate_card_image(card3)
-    str4 = generate_card_image(card4)
-    str5 = generate_card_image(card5)
-    puts combine_images(str1, str2, str3, str4, str5)
+    @card1 = generate_card_image(@deck.take_one)
+    @card2 = generate_card_image(@deck.take_one)
+    @card3 = generate_card_image(@deck.take_one)
+    @card4 = generate_card_image(@deck.take_one)
+    @card5 = generate_card_image(@deck.take_one)
+    init_images
+    puts combine_images(*@cards)
     sleep(1)
   end
 
@@ -106,15 +120,14 @@ class Interface
     lines
   end
 
-  def generate_card_image(card) # MAKE THESE CARDS AND IMAGES PERSIST UNTIL
-    row = VALUES_GRAPHICS_LOOKUP[card.value] # THE NEXT TURN. YOU WANT PERSISTENT BUTTON OBJECTS,
-    col = SUITS_GRAPHICS_LOOKUP[card.suit] # SO THEY CAN TRACK THEIR STATE OF ACTIVATION OR NOT.
-    img = lookup_image(row, col) # ONLY CALL A FULL *RE-CREATION* ONCE A MOVE HAS BEEN
-    img = colorize_image(img, card) # MADE.
+  def generate_card_image(card)
+    row = VALUES_GRAPHICS_LOOKUP[card.value]
+    col = SUITS_GRAPHICS_LOOKUP[card.suit] #
+    img = lookup_image(row, col) 
+    img = colorize_image(img, card)
     img = add_card_name(img, card)
-    discard = Button.discard
-    button = add_button(img)
-    img + discard + button
+    discard = Button.discard.cursor_over
+    img + discard
   end
 
   def lookup_image(x, y)
@@ -147,14 +160,6 @@ class Interface
     end
   end
 
-  def add_button(img)
-    draw = Button.new
-    draw << " ".center(60)
-    draw << " ".center(60).white.on_black
-    draw << "DRAW".center(60).white.on_black
-    draw << " ".center(60).white.on_black
-  end
-
   def add_computer_message
     message = Button.new
     message << " ".center(60)
@@ -168,12 +173,17 @@ class Interface
     (x + dx).between?(0, 5) && (y + dy).between?(0, 2)
   end
 
+  def init_images
+    @cards = [@card1, @card2, @card3, @card4, @card5]
+    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
+    @buttons = [@bet_raise, @check_call, @fold]
+  end
+
 end
 
 class Button < Array
-
   def self.discard
-    discard = Button.new
+    discard = Button.new("Discard", 11, :red, :on_yellow)
     discard << " ".rjust(11).red.on_yellow
     discard << "Discard".center(11).red.bold.on_yellow
     discard << " ".rjust(11).red.on_yellow
@@ -200,24 +210,34 @@ class Button < Array
   end
 
   def self.custom_button(function)
-    bet = Button.new
+    bet = Button.new(function, 18, :white, :on_black)
     button << " ".rjust(18).white.on_black
     button << function.center(18).white.on_black
     button << " ".rjust(18).white.on_black
   end
 
-  def initialize(*args, &block)
-    super(*args, &block)
+  def initialize(function, just, fg, bg)
+    super()
+    @function = function
+    @just = just
+    @fg = fg
+    @bg = bg
     @selected = false
+    @cursor_over = false
   end
 
   def select!
-    map!(&:swap) if !@selected
-    @selected = true
+    map!(&:swap)
+    @fg, @bg = @bg, @fg
+    @selected = @selected == true ? false : true
+    self
   end
 
-  def deselect!
-    map!(&:swap) if @selected
-    @selected = false
+  def cursor_over #Returns a COPY with underline
+    i = 0
+    map do |el|
+      i += 1
+      i == 2 ? @function.center(@just).underline.send(@fg).send(@bg) : el
+    end
   end
 end
