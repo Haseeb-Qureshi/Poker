@@ -61,10 +61,12 @@ class Interface
     @discard3 = Button.discard
     @discard4 = Button.discard
     @discard5 = Button.discard
-    @bet = Button.bet
-    @check = Button.check
+    @bet_raise = Button.bet #TERNARY OPERATOR HERE?
+    @check_call = Button.check #AND HERE?
     @fold = Button.fold
   end
+
+  # IF IT'S TIME TO RAISE THEN CREATE A
 
   def render(player_bankroll, computer_bankroll, cards)
     system 'clear'
@@ -104,7 +106,7 @@ class Interface
     img = lookup_image(row, col) # ONLY CALL A FULL *RE-CREATION* ONCE A MOVE HAS BEEN
     img = colorize_image(img, card) # MADE.
     img = add_card_name(img, card)
-    discard = add_discard_option(img)
+    discard = Button.discard
     button = add_button(img)
     img + discard + button
   end
@@ -139,13 +141,6 @@ class Interface
     end
   end
 
-  def add_discard_option(img)
-    option = Button.new
-    option << " ".rjust(11).red.on_yellow
-    option << "Discard".center(11).red.bold.on_yellow
-    option << " ".rjust(11).red.on_yellow
-  end
-
   def add_button(img)
     draw = Button.new
     draw << " ".center(60)
@@ -171,11 +166,38 @@ end
 
 class Button < Array
 
-  def self.empty_discard
-    option = Button.new
-    option << " ".center(11)
-    option << " ".center(11)
-    option << " ".center(11)
+  def self.discard
+    discard = Button.new
+    discard << " ".rjust(11).red.on_yellow
+    discard << "Discard".center(11).red.bold.on_yellow
+    discard << " ".rjust(11).red.on_yellow
+  end
+
+  def self.bet
+    Button.custom_button("Bet")
+  end
+
+  def self.raise
+    Button.custom_button("Raise")
+  end
+
+  def self.check
+    Button.custom_button("Check")
+  end
+
+  def self.call
+    Button.custom_button("Call")
+  end
+
+  def self.fold
+    Button.custom_button("Fold")
+  end
+
+  def self.custom_button(function)
+    bet = Button.new
+    button << " ".rjust(18).white.on_black
+    button << function.center(18).white.on_black
+    button << " ".rjust(18).white.on_black
   end
 
   def initialize(*args, &block)
