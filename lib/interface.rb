@@ -48,6 +48,9 @@ class Interface
   def initialize(deck)
     @deck = deck
     @cursor = [0, 0]
+    @cards = [@card1, @card2, @card3, @card4, @card5]
+    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
+    @buttons = [@bet_raise, @check_call, @fold]
   end
 
   def new_turn
@@ -66,6 +69,7 @@ class Interface
     @fold = Button.fold
   end
 
+  def do other stuff
   # IF IT'S TIME TO RAISE THEN CREATE A
 
   def render(player_bankroll, computer_bankroll, cards)
