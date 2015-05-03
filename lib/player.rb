@@ -14,6 +14,15 @@ class Player
     @display = display
   end
 
+  def new_hand(deck)
+    @hand = Hand.new([], deck)
+    5.times { @hand.take_card }
+  end
+
+  def cards
+    @hand.cards
+  end
+
   def bust?
     @bankroll == 0
   end

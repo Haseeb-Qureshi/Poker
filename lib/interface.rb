@@ -51,12 +51,19 @@ class Interface
   end
 
   def new_turn
-    @card1 #...
-    @discard1 #...
-    @discard2# ...
-    @raise
-    @bet
-    @call
+    @card1 = @player.cards[0]
+    @card2 = @player.cards[1]
+    @card3 = @player.cards[2]
+    @card4 = @player.cards[3]
+    @card5 = @player.cards[4]
+    @discard1 = Button.discard
+    @discard2 = Button.discard
+    @discard3 = Button.discard
+    @discard4 = Button.discard
+    @discard5 = Button.discard
+    @bet = Button.bet
+    @check = Button.check
+    @fold = Button.fold
   end
 
   def render(player_bankroll, computer_bankroll, cards)
@@ -73,7 +80,6 @@ class Interface
     str3 = generate_card_image(card3)
     str4 = generate_card_image(card4)
     str5 = generate_card_image(card5)
-    # p @deck.cards_left
     puts combine_images(str1, str2, str3, str4, str5)
     sleep(1)
   end
@@ -108,20 +114,12 @@ class Interface
   end
 
   def colorize_image(img, card)
-    color = case card.suit
-    when :s, :c then :black
-    when :h, :d then :red
-    end
+    color = color_map(card.suit)
     img.map { |line| line.colorize(color: color, background: :white) }
   end
 
   def add_card_name(img, card)
-    color = case card.suit
-    when :s then :black
-    when :c then :green
-    when :h then :red
-    when :d then :blue
-    end
+    color = color_map(card.suit)
     my_value = VALUE_TO_WORD[card.value].center(11)
     of = " of".center(11)
     my_suit = SUIT_TO_WORD[card.suit].rjust(11)
@@ -130,6 +128,15 @@ class Interface
     img << of.bold
     img << my_suit.bold.colorize(color: color).underline
     img << space
+  end
+
+  def color_map(suit)
+    case suit
+    when :s then :black
+    when :c then :green
+    when :h then :red
+    when :d then :blue
+    end
   end
 
   def add_discard_option(img)
@@ -147,6 +154,13 @@ class Interface
     draw << " ".center(60).white.on_black
   end
 
+  def add_computer_message
+    message = Button.new
+    message << " ".center(60)
+    message << @computer.message.center(60)
+
+  end
+
   def self.overflow?(input)
     x, y = @cursor
     dx, dy = CURSOR_MOVEMENT[input]
@@ -156,6 +170,14 @@ class Interface
 end
 
 class Button < Array
+
+  def self.empty_discard
+    option = Button.new
+    option << " ".center(11)
+    option << " ".center(11)
+    option << " ".center(11)
+  end
+
   def initialize(*args, &block)
     super(*args, &block)
     @selected = false

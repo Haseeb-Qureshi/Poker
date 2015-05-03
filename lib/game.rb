@@ -10,7 +10,7 @@ class Game
   def initialize
     @deck = Deck.new
     @interface = Interface.new(@deck)
-    @players = [Player.new(self, @interface), Computer.new(self)]
+    @players = [Player.new(self, @interface), Computer.new(self, @interface)]
     @stakes = 50
     @pot = 0
   end
@@ -21,10 +21,10 @@ class Game
   end
 
   def play
-    @interface.render(@human_roll, @computer_roll, [])
+    render
     until @players.any?(&:bust?)
-      new_hand
-      @interface.render(@human_roll, @computer_roll, [])
+      deal_in
+      render
     end
     game_over_message
   end
@@ -43,6 +43,14 @@ class Game
     sleep(4.5)
     puts "Let's deal!"
     sleep(2)
+  end
+
+  def render
+    @interface.render(@human_roll, @computer_roll, [])
+  end
+
+  def deal_in
+    @players.each { |player| player.new_hand(@deck) }
   end
 
   def current_player
