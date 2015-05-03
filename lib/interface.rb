@@ -1,25 +1,7 @@
-class Display
-  VALUES_TABLE = {
-    14 => 1,
-    13 => 11,
-    12 => 21,
-    11 => 31,
-    10 => 42,
-    9 => 53,
-    8 => 64,
-    7 => 75,
-    6 => 85,
-    5 => 95,
-    4 => 105,
-    3 => 115,
-    2 => 125,
-  }
-  SUITS_TABLE = {
-    :c => 2,
-    :d => 22,
-    :h => 42,
-    :s => 62,
-  }
+require_relative 'assets/cards_art'
+
+class Interface
+  CARDS_GRAPHICS = ASCII_CARDS.lines
   VALUE_TO_WORD = {
     14 => "Ace",
     13 => "King",
@@ -41,19 +23,40 @@ class Display
     :h => "Hearts",
     :s => "Spades",
   }
+  VALUES_GRAPHICS_LOOKUP = {
+    14 => 1,
+    13 => 11,
+    12 => 21,
+    11 => 31,
+    10 => 42,
+    9 => 53,
+    8 => 64,
+    7 => 75,
+    6 => 85,
+    5 => 95,
+    4 => 105,
+    3 => 115,
+    2 => 125,
+  }
+  SUITS_GRAPHICS_LOOKUP = {
+    :c => 2,
+    :d => 22,
+    :h => 42,
+    :s => 62,
+  }
 
-  Dir.chdir("lib/assets")
-  CARDS_GRAPHICS = File.readlines('cards.txt')
-
-  def initialize
-    @deck = Deck.new
+  def initialize(deck)
+    @deck = deck
     @cursor = [0, 0]
   end
 
-  def overflow?(input)
-    x, y = @cursor
-    dx, dy = CURSOR_MOVEMENT[input]
-    (x + dx).between?(0, 5) && (y + dy).between?(0, 2)
+  def new_turn
+    @card1 #...
+    @discard1 #...
+    @discard2# ...
+    @raise
+    @bet
+    @call
   end
 
   def render(player_bankroll, computer_bankroll, cards)
@@ -81,10 +84,6 @@ class Display
     @cursor = [x + dx, y + dy]
   end
 
-  def select!
-
-  end
-
   def combine_images(str1, str2, str3, str4, str5)
     [].tap { |lines| 14.times do |i|
       if str1[i] &&  str2[i] &&  str3[i] &&  str4[i] &&  str5[i]
@@ -94,13 +93,14 @@ class Display
   end
 
   def generate_card_image(card) # MAKE THESE CARDS AND IMAGES PERSIST UNTIL
-    row = VALUES_TABLE[card.value] # THE NEXT TURN. YOU WANT PERSISTENT BUTTON OBJECTS,
-    col = SUITS_TABLE[card.suit] # SO THEY CAN TRACK THEIR STATE OF ACTIVATION OR NOT.
+    row = VALUES_GRAPHICS_LOOKUP[card.value] # THE NEXT TURN. YOU WANT PERSISTENT BUTTON OBJECTS,
+    col = SUITS_GRAPHICS_LOOKUP[card.suit] # SO THEY CAN TRACK THEIR STATE OF ACTIVATION OR NOT.
     img = lookup_image(row, col) # ONLY CALL A FULL *RE-CREATION* ONCE A MOVE HAS BEEN
     img = colorize_image(img, card) # MADE.
     img = add_card_name(img, card)
     discard = add_discard_option(img)
     button = add_button(img)
+    img + discard + button
   end
 
   def lookup_image(x, y)
@@ -132,7 +132,7 @@ class Display
     img << space
   end
 
-  def add_discard_option(img) # THE CARD WILL TELL YOU WHETHER ITS BEEN SELECTED FOR DISCARDING
+  def add_discard_option(img)
     option = Button.new
     option << " ".rjust(11).red.on_yellow
     option << "Discard".center(11).red.bold.on_yellow
@@ -146,26 +146,28 @@ class Display
     draw << "DRAW".center(60).white.on_black
     draw << " ".center(60).white.on_black
   end
+
+  def self.overflow?(input)
+    x, y = @cursor
+    dx, dy = CURSOR_MOVEMENT[input]
+    (x + dx).between?(0, 5) && (y + dy).between?(0, 2)
+  end
+
 end
 
 class Button < Array
-  attr_accessor :selected
   def initialize(*args, &block)
     super(*args, &block)
     @selected = false
   end
 
-  def <<(line)
-    USE SELECTED? TO SWAP THE SHOVELED IN ITEM
+  def select!
+    map!(&:swap) if !@selected
+    @selected = true
+  end
+
+  def deselect!
+    map!(&:swap) if @selected
+    @selected = false
   end
 end
-
-
-#
-# begin
-#           [0..8].map { |str| str[0..11] } for ace of clubs
-#           [0..8].map { |str| str[20..31] } for ace of diamonds
-#           [0..8].map { |str| str[40..51] } for ace of hearts
-#           [0..8].map { |str| str[60..71] } for ace of spades
-#
-# end

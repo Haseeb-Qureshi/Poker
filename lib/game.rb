@@ -1,15 +1,16 @@
 require_relative 'player'
+require_relative 'computer'
 require_relative 'deck'
 require_relative 'hand'
-require_relative 'display'
+require_relative 'interface'
 require 'colorize'
 require 'io/console'
 
 class Game
   def initialize
-    @players = [Player.new, Computeru.new]
     @deck = Deck.new
-    @display = Display.new
+    @interface = Interface.new(@deck)
+    @players = [Player.new(self, @interface), Computer.new(self)]
     @stakes = 50
     @pot = 0
   end
@@ -20,10 +21,10 @@ class Game
   end
 
   def play
-    @display.render(@human_roll, @computer_roll, [])
+    @interface.render(@human_roll, @computer_roll, [])
     until @players.any?(&:bust?)
-      new_hand(current_player)
-      @display.render(@human_roll, @computer_roll, [])
+      new_hand
+      @interface.render(@human_roll, @computer_roll, [])
     end
     game_over_message
   end
@@ -49,8 +50,8 @@ class Game
   end
 
   def new_hand
-    current_player.make_draw
-    @players.last.make_draw
+    # current_player.make_draw
+    # @players.last.make_draw
   end
 
   def game_over_message

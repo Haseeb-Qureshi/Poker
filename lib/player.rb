@@ -58,7 +58,7 @@ class Player
 
   def valid_input?(input)
     case input
-    when "\e[A", "\e[B", "\e[C", "\e[D", "\r" then !overflow?(input)
+    when "\e[A", "\e[B", "\e[C", "\e[D", "\r" then !Interface.overflow?(input)
     else false
     end
   end

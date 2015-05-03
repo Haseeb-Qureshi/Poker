@@ -2,7 +2,7 @@ require 'hand'
 require_relative 'support/hand_spec_helper'
 
 describe Hand do
-  describe "hand methods" do
+  describe "card functions" do
     let(:new_card) { double(:new_card, value: 4, suit: :s) }
     let(:deck) { double('deck', take_one: new_card) }
     subject(:hand) { Hand.new([], deck) }
@@ -38,7 +38,7 @@ describe Hand do
     end
   end
 
-  describe "#<=>" do
+  describe "hand comparisons" do
     let(:a_high_card) { high_card }
     let(:a_pair) { pair }
     let(:a_two_pair) { two_pair }
