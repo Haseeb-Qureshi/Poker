@@ -93,11 +93,13 @@ class Interface
   end
 
   def combine_images(str1, str2, str3, str4, str5)
-    [].tap { |lines| 14.times do |i|
+    lines = []
+    14.times do |i|
       if str1[i] &&  str2[i] &&  str3[i] &&  str4[i] &&  str5[i]
         lines << " " + [str1[i], str2[i], str3[i], str4[i], str5[i]].join(" ")
       end
-    end }
+    end
+    lines
   end
 
   def generate_card_image(card) # MAKE THESE CARDS AND IMAGES PERSIST UNTIL
