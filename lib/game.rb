@@ -24,7 +24,7 @@ class Game
   def play
     @display.render(@human_roll, @computer_roll, [])
     until @players.any?(&:bust?)
-      new_hand
+      new_hand(current_player)
       @players.rotate!
       @display.render(@human_roll, @computer_roll, [])
     end
@@ -47,7 +47,13 @@ class Game
     sleep(2)
   end
 
+  def current_player
+    @players.first
+  end
+
   def new_hand
+    current_player.make_draw
+    @players.last.make_draw
   end
 
   def game_over_message

@@ -56,7 +56,7 @@ class Display
     @cursor = [0, 0]
   end
 
-  def get_input
+  def get_input                  #MOVE INTO PLAYER CLASS (or human class)
     select_something = false
     until select_something
       input = read_char
@@ -166,17 +166,27 @@ class Display
     my_value = VALUE_TO_WORD[card.value].center(11)
     of = " of".center(11)
     my_suit = SUIT_TO_WORD[card.suit].rjust(11)
+    space = " ".rjust(11)
     img << my_value.bold
     img << of.bold
     img << my_suit.bold.colorize(color: color).underline
+    img << space
   end
 
-  def add_discard_option(img)
-    @cursor -
-    img << " ".rjust(11)
-    img << " ".rjust(11).on_yellow
-    img << "Discard".center(11).red.bold.on_yellow
-    img << " ".rjust(11).on_yellow
+  def add_discard_option(img) # THE CARD WILL TELL YOU WHETHER ITS BEEN SELECTED FOR DISCARDING
+    option = []
+    option << " ".rjust(11).red.on_yellow
+    option << "Discard".center(11).red.bold.on_yellow
+    option << " ".rjust(11).red.on_yellow
+    img + option#.map(&:swap)
+  end
+
+  def add_buttons(img)
+    draw = []
+    draw << " ".center(60)
+    draw << " ".center(60).white.on_black
+    draw << "DRAW".center(60).white.on_black
+    draw << " ".center(60).white.on_black
   end
 end
 
