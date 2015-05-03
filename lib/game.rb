@@ -7,13 +7,11 @@ require 'io/console'
 
 class Game
   def initialize
-    @players = [Player.new, Player.new]
+    @players = [Player.new, Computeru.new]
     @deck = Deck.new
     @display = Display.new
     @stakes = 50
     @pot = 0
-    @human_roll = $1000
-    @cpu_roll = $1000
   end
 
   def start
@@ -25,7 +23,6 @@ class Game
     @display.render(@human_roll, @computer_roll, [])
     until @players.any?(&:bust?)
       new_hand(current_player)
-      @players.rotate!
       @display.render(@human_roll, @computer_roll, [])
     end
     game_over_message

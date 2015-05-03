@@ -41,65 +41,13 @@ class Display
     :h => "Hearts",
     :s => "Spades",
   }
-  CURSOR_MOVEMENT = {
-    "\e[A" => [-1, 0],
-    "\e[B" => [1, 0],
-    "\e[C" => [0, 1],
-    "\e[D" => [0, -1],
-    "\r" => [0, 0],
-  }
+
   Dir.chdir("lib/assets")
   CARDS_GRAPHICS = File.readlines('cards.txt')
 
   def initialize
     @deck = Deck.new
     @cursor = [0, 0]
-  end
-
-  def get_input                  #MOVE INTO PLAYER CLASS (or human class)
-    select_something = false
-    until select_something
-      input = read_char
-      select_something = true if valid_input?(input)
-    end
-    movement = CURSOR_MOVEMENT[input]
-    if movement == [0, 0]
-      select!
-    else
-      update_cursor(movement)
-    end
-  end
-
-  def select!
-
-  end
-
-  def update_cursor(movement)
-    x, y = @cursor
-    dx, dy = movement
-    @cursor = [x + dx, y + dy]
-  end
-
-  def read_char
-    STDIN.echo = false
-    STDIN.raw!
-    input = STDIN.getc.chr
-    if input == "\e"
-      input << STDIN.read_nonblock(3) rescue nil
-      input << STDIN.read_nonblock(2) rescue nil
-    end
-  ensure
-    STDIN.echo = true
-    STDIN.cooked!
-
-    return input
-  end
-
-  def valid_input?(input)
-    case input
-    when "\e[A", "\e[B", "\e[C", "\e[D", "\r" then !overflow?(input)
-    else false
-    end
   end
 
   def overflow?(input)
@@ -127,6 +75,16 @@ class Display
     sleep(1)
   end
 
+  def update_cursor(movement)
+    x, y = @cursor
+    dx, dy = movement
+    @cursor = [x + dx, y + dy]
+  end
+
+  def select!
+
+  end
+
   def combine_images(str1, str2, str3, str4, str5)
     [].tap { |lines| 14.times do |i|
       if str1[i] &&  str2[i] &&  str3[i] &&  str4[i] &&  str5[i]
@@ -135,13 +93,14 @@ class Display
     end }
   end
 
-  def generate_card_image(card)
-    row = VALUES_TABLE[card.value]
-    col = SUITS_TABLE[card.suit]
-    img = lookup_image(row, col)
-    img = colorize_image(img, card)
+  def generate_card_image(card) # MAKE THESE CARDS AND IMAGES PERSIST UNTIL
+    row = VALUES_TABLE[card.value] # THE NEXT TURN. YOU WANT PERSISTENT BUTTON OBJECTS,
+    col = SUITS_TABLE[card.suit] # SO THEY CAN TRACK THEIR STATE OF ACTIVATION OR NOT.
+    img = lookup_image(row, col) # ONLY CALL A FULL *RE-CREATION* ONCE A MOVE HAS BEEN
+    img = colorize_image(img, card) # MADE.
     img = add_card_name(img, card)
-    img = add_discard_option(img)
+    discard = add_discard_option(img)
+    button = add_button(img)
   end
 
   def lookup_image(x, y)
@@ -174,19 +133,30 @@ class Display
   end
 
   def add_discard_option(img) # THE CARD WILL TELL YOU WHETHER ITS BEEN SELECTED FOR DISCARDING
-    option = []
+    option = Button.new
     option << " ".rjust(11).red.on_yellow
     option << "Discard".center(11).red.bold.on_yellow
     option << " ".rjust(11).red.on_yellow
-    img + option#.map(&:swap)
   end
 
-  def add_buttons(img)
-    draw = []
+  def add_button(img)
+    draw = Button.new
     draw << " ".center(60)
     draw << " ".center(60).white.on_black
     draw << "DRAW".center(60).white.on_black
     draw << " ".center(60).white.on_black
+  end
+end
+
+class Button < Array
+  attr_accessor :selected
+  def initialize(*args, &block)
+    super(*args, &block)
+    @selected = false
+  end
+
+  def <<(line)
+    USE SELECTED? TO SWAP THE SHOVELED IN ITEM
   end
 end
 
