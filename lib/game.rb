@@ -3,13 +3,17 @@ require_relative 'deck'
 require_relative 'hand'
 require_relative 'display'
 require 'colorize'
+require 'io/console'
 
 class Game
   def initialize
     @players = [Player.new, Player.new]
     @deck = Deck.new
-    @stakes = 10
+    @display = Display.new
+    @stakes = 50
     @pot = 0
+    @human_roll = $1000
+    @cpu_roll = $1000
   end
 
   def start
@@ -18,11 +22,11 @@ class Game
   end
 
   def play
-    render
+    @display.render(@human_roll, @computer_roll, [])
     until @players.any?(&:bust?)
       new_hand
       @players.rotate!
-      render
+      @display.render(@human_roll, @computer_roll, [])
     end
     game_over_message
   end
@@ -35,9 +39,9 @@ class Game
     sleep(2)
     puts "I, the Pokertron 5000, will be your humble opponent."
     sleep(3)
-    puts "Now, to begin: we're each going to start with $500."
+    puts "Now, to begin: we're each going to start with $1000."
     sleep(4)
-    puts "Stakes start at $5/$10. They go up every minute, so play fast."
+    puts "Stakes start at $50 per bet. They go up every minute, so play fast."
     sleep(4.5)
     puts "Let's deal!"
     sleep(2)
