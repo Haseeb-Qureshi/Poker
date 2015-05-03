@@ -52,17 +52,23 @@ class Interface
   end
 
   def render_screen
-    discard = Button.discard.cursor_over
+    system 'clear'
+    puts combine_cards(@cards)
+    puts combine_discards
+    puts computer_message
+    puts combine_buttons
+  end
+
+  def combine_cards(*cards)
+    combine_images(cards, 14)
   end
 
   def combine_discards
-    lines = []
-    3.times do |i|
-      if @discards.any?
-        lines << " " + @discards.map { |button| button[i] }.join(" ")
-      end
-    end
-    lines
+    combine_images(@discards, 3)
+  end
+
+  def combine_buttons
+    combine_images(@buttons, 3)
   end
 
   def set_new_turn
@@ -118,18 +124,33 @@ class Interface
     sleep(1)
   end
 
+  def computer_message
+    message = []
+    message << " ".center(60)
+    message << @computer.message.center(60)
+    message << " ".center(60)
+  end
+
+  def init_image_groups #fills in the arrays with most recent versions
+    @cards = [@card1, @card2, @card3, @card4, @card5]
+    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
+    @buttons = [@bet_raise, @check_call, @fold]
+  end
+
   def update_cursor(movement)
     x, y = @cursor
     dx, dy = movement
     @cursor = [x + dx, y + dy]
   end
 
-  def combine_cards(*cards)
-    lines = []
-    14.times do |i|
-      lines << " " +  cards.map { |button| button[i] }.join(" ")
+  def combine_images(images, lines)
+    combined_image = []
+    lines.times do |i|
+      if images.any?
+        combined_image << " " +  images.map { |image| image[i] }.join(" ")
+      end
     end
-    lines
+    combined_image
   end
 
   def generate_card_image(card)
@@ -169,19 +190,6 @@ class Interface
     when :h then :red
     when :d then :blue
     end
-  end
-
-  def computer_message
-    message = []
-    message << " ".center(60)
-    message << @computer.message.center(60)
-    message << " ".center(60)
-  end
-
-  def init_image_groups #fills in the arrays with most recent versions
-    @cards = [@card1, @card2, @card3, @card4, @card5]
-    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
-    @buttons = [@bet_raise, @check_call, @fold]
   end
 
   def self.overflow?(input)
