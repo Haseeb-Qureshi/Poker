@@ -51,6 +51,20 @@ class Interface
     @cards = [@card1, @card2, @card3, @card4, @card5]
   end
 
+  def render_screen
+    discard = Button.discard.cursor_over
+  end
+
+  def combine_discards
+    lines = []
+    3.times do |i|
+      if @discards.any?
+        lines << " " + @discards.map { |button| button[i] }.join(" ")
+      end
+    end
+    lines
+  end
+
   def set_new_turn
     @card1 = generate_card_image(@player.cards[0])
     @card2 = generate_card_image(@player.cards[1])
@@ -63,19 +77,19 @@ class Interface
     @discard4 = Button.discard
     @discard5 = Button.discard
     @fold = Button.fold
-    init_images
+    init_image_groups
   end
 
   def set_first_to_bet
     @bet_raise = Button.bet
     @check_call = Button.check
-    init_images
+    init_image_groups
   end
 
   def set_facing_a_bet
     @bet_raise = Button.raise
     @check_call = Button.call
-    init_images
+    init_image_groups
   end
 
   def set_final_round
@@ -99,8 +113,8 @@ class Interface
     @card3 = generate_card_image(@deck.take_one)
     @card4 = generate_card_image(@deck.take_one)
     @card5 = generate_card_image(@deck.take_one)
-    init_images
-    puts combine_images(*@cards)
+    init_image_groups
+    puts combine_cards(*@cards)
     sleep(1)
   end
 
@@ -110,24 +124,21 @@ class Interface
     @cursor = [x + dx, y + dy]
   end
 
-  def combine_images(str1, str2, str3, str4, str5)
+  def combine_cards(*cards)
     lines = []
     14.times do |i|
-      if str1[i] &&  str2[i] &&  str3[i] &&  str4[i] &&  str5[i]
-        lines << " " + [str1[i], str2[i], str3[i], str4[i], str5[i]].join(" ")
-      end
+      lines << " " +  cards.map { |button| button[i] }.join(" ")
     end
     lines
   end
 
   def generate_card_image(card)
     row = VALUES_GRAPHICS_LOOKUP[card.value]
-    col = SUITS_GRAPHICS_LOOKUP[card.suit] #
-    img = lookup_image(row, col) 
+    col = SUITS_GRAPHICS_LOOKUP[card.suit]
+    img = lookup_image(row, col)
     img = colorize_image(img, card)
     img = add_card_name(img, card)
-    discard = Button.discard.cursor_over
-    img + discard
+    img
   end
 
   def lookup_image(x, y)
@@ -160,11 +171,17 @@ class Interface
     end
   end
 
-  def add_computer_message
-    message = Button.new
+  def computer_message
+    message = []
     message << " ".center(60)
     message << @computer.message.center(60)
+    message << " ".center(60)
+  end
 
+  def init_image_groups #fills in the arrays with most recent versions
+    @cards = [@card1, @card2, @card3, @card4, @card5]
+    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
+    @buttons = [@bet_raise, @check_call, @fold]
   end
 
   def self.overflow?(input)
@@ -172,13 +189,6 @@ class Interface
     dx, dy = CURSOR_MOVEMENT[input]
     (x + dx).between?(0, 5) && (y + dy).between?(0, 2)
   end
-
-  def init_images
-    @cards = [@card1, @card2, @card3, @card4, @card5]
-    @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
-    @buttons = [@bet_raise, @check_call, @fold]
-  end
-
 end
 
 class Button < Array
