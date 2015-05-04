@@ -1,6 +1,13 @@
 require_relative 'player'
 
 class Human < Player
+  CURSOR_MOVEMENT = {
+    "\e[A" => [-1, 0],
+    "\e[B" => [1, 0],
+    "\e[C" => [0, 1],
+    "\e[D" => [0, -1],
+    "\r"   => [0, 0],
+  }
 
   def get_input
     select_something = false

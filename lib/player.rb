@@ -1,12 +1,5 @@
 class Player
-  attr_reader :bankroll
-  CURSOR_MOVEMENT = {
-    "\e[A" => [-1, 0],
-    "\e[B" => [1, 0],
-    "\e[C" => [0, 1],
-    "\e[D" => [0, -1],
-    "\r"   => [0, 0],
-  }
+  attr_accessor :bankroll
 
   def initialize(game, display)
     @bankroll = 1000
@@ -14,7 +7,7 @@ class Player
     @display = display
   end
 
-  def new_hand(deck)
+  def take_new_hand(deck)
     @hand = Hand.new([], deck)
     5.times { @hand.take_card }
   end
@@ -27,14 +20,29 @@ class Player
     @bankroll == 0
   end
 
-  def call_bet(bet)
+  def bet(bb)
+    raise BankrollError if bb > bankroll
+    @bankroll -= bb
   end
 
-  def raise(bet)
+  def check
+  end
+
+  def raise(bb)
+    raise BankrollError if 2 * bb > bankroll
+    @bankroll -= 2 * bb
+  end
+
+  def call_bet(bet)
+    raise BankrollError if bb > bankroll
+    @bankroll -= bb
   end
 
   def fold
+    @game.forfeit_pot(self)
   end
 
+end
 
+class BankrollError < StandardError
 end

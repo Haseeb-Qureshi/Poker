@@ -46,7 +46,8 @@ class Interface
     :s => 62,
   }
 
-  def initialize(deck)
+  def initialize(game, deck)
+    @game = game
     @deck = deck
     @cursor = [0, 0]
     @cards = [@card1, @card2, @card3, @card4, @card5]
@@ -57,13 +58,40 @@ class Interface
   #Cursor starts at 0, 0. After the final round (when discard buttons disappear),
   #the cursor goes to 1, 0. It resumes Y-functionality the next turn.
 
+  #Each turn should render appropriately based on what is required. (Raising or calling or folding, etc.)
+  #The only thing that remains to be done is to activate the _.cursor_over_ on the button if it's on the cursor.
+  #This can be done by making the whole display part (discards + buttons) one giant array. (Right?)
+  #Sure. Put each button in the array, then cursor the right one, then swap 'em.'
+
+
+  #Put this logic into the game class.
+
+  #Decide what initializations to do. If someone bets, then show a raise to someone else.
+  #(Feel free to re-write player classes if necessary.)
+  #Write tests later. First decide your architecture and implementation
+  #and make sure that it ultimately makes sense.
+
+  #Game takes moves from computer and player (in order of who goes first, which rotates).
+  #Then it calls the right info to render.
+  #If the player goes all-in, then future streets are skipped.
+  #The game can check this by checking #bust? on either player on any given street.
+
+  #There can also be a BankrollError raised by the player, which will trigger skips of future streets.
+
+  #The cursor updates from the player <-> interface.
+
+  #Computer AI can be implemented later. For now it will always stand pat?
+
+
+
   def render_turn
     system 'clear'
     puts bankrolls
-    puts combine_cards(@cards)
+    puts combine_cards(*@cards)
     puts combine_discards
     puts computer_message
     puts combine_buttons
+    sleep(5)
   end
 
   def render_showdown
@@ -76,12 +104,13 @@ class Interface
 
   def bankrolls
     bankrolls = []
-    bankrolls << ("Player bankroll: " + @human.bankroll.green).rjust(90)
-    bankrolls << ("Computer bankroll: " + @computer.bankroll.yellow).rjust(90)
+    bankrolls << ("Player bankroll: $" + @human.bankroll.to_s.green).rjust(90)
+    bankrolls << ("Computer bankroll: $" + @computer.bankroll.to_s.yellow).rjust(90)
+    bankrolls << ("BB:   $" + @game.stakes.to_s.white).rjust(90)
   end
 
   def combine_cards(*cards)
-    combine_images(cards, 14)
+    combine_images(cards, 11)
   end
 
   def combine_discards
@@ -137,15 +166,9 @@ class Interface
 
   def render(player_bankroll, computer_bankroll, cards)
     system 'clear'
-    puts ("Player bankroll: " + "1000".green).rjust(90)
-    puts ("Computer bankroll: " + "1000".yellow).rjust(90)
-    @card1 = generate_card_image(@deck.take_one)
-    @card2 = generate_card_image(@deck.take_one)
-    @card3 = generate_card_image(@deck.take_one)
-    @card4 = generate_card_image(@deck.take_one)
-    @card5 = generate_card_image(@deck.take_one)
-    init_image_groups
-    puts combine_cards(*@cards)
+    set_new_turn
+    set_first_to_bet
+    render_turn
     sleep(1)
   end
 
@@ -181,7 +204,7 @@ class Interface
     elsif movement == [-1, 0] # mapping for moving up
       if @cursor == [1, 0]
         @cursor = [0, 0]
-      elsif @cursor = [1, 1]
+      elsif @cursor == [1, 1]
         @cursor = [0, 2]
       else
         @cursor = [0, 3]
@@ -283,9 +306,9 @@ class Button < Array
 
   def self.custom_button(function)
     bet = Button.new(function, 18, :white, :on_black)
-    button << " ".rjust(18).white.on_black
-    button << function.center(18).white.on_black
-    button << " ".rjust(18).white.on_black
+    bet << " ".rjust(18).white.on_black
+    bet << function.center(18).white.on_black
+    bet << " ".rjust(18).white.on_black
   end
 
   def initialize(function, just, fg, bg)

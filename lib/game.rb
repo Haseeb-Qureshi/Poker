@@ -7,12 +7,15 @@ require 'colorize'
 require 'io/console'
 
 class Game
+  attr_reader :stakes
+  
   def initialize
     @deck = Deck.new
     @interface = Interface.new(self, @deck)
     @players = [Human.new(self, @interface), Computer.new(self, @interface)]
     @stakes = 50
     @pot = 0
+    @winner = nil
   end
 
   def start
@@ -21,10 +24,13 @@ class Game
   end
 
   def play
-    render
+    init_interface   # DO THIS LATER
+  #  render              UNDO THIS LATER?
     until @players.any?(&:bust?)
-      deal_in
-      render
+      deal_in_players
+      play_hand
+      award_pot
+      prepare_for_next_hand
     end
     game_over_message
   end
@@ -50,8 +56,22 @@ class Game
     @interface.render(@human_roll, @computer_roll, [])
   end
 
-  def deal_in
-    @players.each { |player| player.new_hand(@deck) }
+  def play_hand
+    render
+
+  end
+
+  def deal_in_players
+    @players.each { |player| player.take_new_hand(@deck) }
+  end
+
+  def award_pot
+    @winner.bankroll += @pot
+  end
+
+  def prepare_for_next_hand
+    @players.rotate!
+    @deck = Deck.new
   end
 
   def current_player
@@ -63,14 +83,9 @@ class Game
     @interface.computer = @players.last
   end
 
-  def new_hand
-    # current_player.make_draw
-    # @players.last.make_draw
-  end
-
   def game_over_message
     system 'clear'
-    puts "Game over! #{@players.first} was the winner."
+    puts "Game over! #{@winner} was the winner."
     puts "This program uses Bej's card ASCII art."
   end
 end
