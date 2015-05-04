@@ -1,6 +1,7 @@
 require_relative 'assets/cards_art'
 
 class Interface
+  attr_writer :human, :computer
   CARDS_GRAPHICS = ASCII_CARDS.lines
   VALUE_TO_WORD = {
     14 => "Ace",
@@ -49,14 +50,34 @@ class Interface
     @deck = deck
     @cursor = [0, 0]
     @cards = [@card1, @card2, @card3, @card4, @card5]
+    @final_round = false
   end
 
-  def render_screen
+  #All cursor logic should work.
+  #Cursor starts at 0, 0. After the final round (when discard buttons disappear),
+  #the cursor goes to 1, 0. It resumes Y-functionality the next turn.
+
+  def render_turn
     system 'clear'
+    puts bankrolls
     puts combine_cards(@cards)
     puts combine_discards
     puts computer_message
     puts combine_buttons
+  end
+
+  def render_showdown
+    system 'clear'
+    puts bankrolls
+    puts combine_cards(@cards)
+    puts combine_cards(@cpu_cards)
+    puts computer_message
+  end
+
+  def bankrolls
+    bankrolls = []
+    bankrolls << ("Player bankroll: " + @human.bankroll.green).rjust(90)
+    bankrolls << ("Computer bankroll: " + @computer.bankroll.yellow).rjust(90)
   end
 
   def combine_cards(*cards)
@@ -72,17 +93,18 @@ class Interface
   end
 
   def set_new_turn
-    @card1 = generate_card_image(@player.cards[0])
-    @card2 = generate_card_image(@player.cards[1])
-    @card3 = generate_card_image(@player.cards[2])
-    @card4 = generate_card_image(@player.cards[3])
-    @card5 = generate_card_image(@player.cards[4])
+    @card1 = generate_card_image(@human.cards[0])
+    @card2 = generate_card_image(@human.cards[1])
+    @card3 = generate_card_image(@human.cards[2])
+    @card4 = generate_card_image(@human.cards[3])
+    @card5 = generate_card_image(@human.cards[4])
     @discard1 = Button.discard
     @discard2 = Button.discard
     @discard3 = Button.discard
     @discard4 = Button.discard
     @discard5 = Button.discard
     @fold = Button.fold
+    @final_round = false
     init_image_groups
   end
 
@@ -99,7 +121,9 @@ class Interface
   end
 
   def set_final_round
+    @cursor = [1, 0]
     @discards = []
+    @final_round = true
   end
 
   def set_showdown
@@ -108,6 +132,7 @@ class Interface
     @cpu_card3 = generate_card_image(@computer.cards[2])
     @cpu_card4 = generate_card_image(@computer.cards[3])
     @cpu_card5 = generate_card_image(@computer.cards[4])
+    init_image_groups
   end
 
   def render(player_bankroll, computer_bankroll, cards)
@@ -135,17 +160,42 @@ class Interface
     @cards = [@card1, @card2, @card3, @card4, @card5]
     @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
     @buttons = [@bet_raise, @check_call, @fold]
+    @cpu_cards = [@cpu_card1, @cpu_card2, @cpu_card3, @cpu_card4, @cpu_card5]
+    @cursorable = [@discards, @buttons]
+  end
+
+  def highlight_cursorable
+    x, y = @cursor
+    @cursorable[x][y].cursor_over
   end
 
   def update_cursor(movement)
-    x, y = @cursor
-    dx, dy = movement
-    @cursor = [x + dx, y + dy]
+    if movement == [1, 0] # mapping for moving down
+      if @cursor === [[0, 0], [0, 1]]
+        @cursor = [1, 0]
+      elsif @cursor == [0, 2]
+        @cursor = [1, 1]
+      else
+        @cursor = [1, 2]
+      end
+    elsif movement == [-1, 0] # mapping for moving up
+      if @cursor == [1, 0]
+        @cursor = [0, 0]
+      elsif @cursor = [1, 1]
+        @cursor = [0, 2]
+      else
+        @cursor = [0, 3]
+      end
+    else
+      x, y = @cursor
+      dx, dy = movement
+      @cursor = [x + dx, y + dy]
+    end
   end
 
-  def combine_images(images, lines)
+  def combine_images(images, num_lines)
     combined_image = []
-    lines.times do |i|
+    num_lines.times do |i|
       if images.any?
         combined_image << " " +  images.map { |image| image[i] }.join(" ")
       end
@@ -192,10 +242,14 @@ class Interface
     end
   end
 
-  def self.overflow?(input)
+  def overflow?(input) #depends on the state of the interface -- are there discard buttons being used?
     x, y = @cursor
     dx, dy = CURSOR_MOVEMENT[input]
-    (x + dx).between?(0, 5) && (y + dy).between?(0, 2)
+    unless @final_round
+      (x + dx).between?(0, 4) && (y + dy).between?(0, 1)
+    else
+      (x + dx).between?(0, 2) && (y + dy) == 1
+    end
   end
 end
 
@@ -251,7 +305,7 @@ class Button < Array
     self
   end
 
-  def cursor_over #Returns a COPY with underline
+  def cursor_over
     i = 0
     map do |el|
       i += 1

@@ -1,4 +1,4 @@
-require_relative 'player'
+require_relative 'human'
 require_relative 'computer'
 require_relative 'deck'
 require_relative 'hand'
@@ -9,8 +9,8 @@ require 'io/console'
 class Game
   def initialize
     @deck = Deck.new
-    @interface = Interface.new(@deck)
-    @players = [Player.new(self, @interface), Computer.new(self, @interface)]
+    @interface = Interface.new(self, @deck)
+    @players = [Human.new(self, @interface), Computer.new(self, @interface)]
     @stakes = 50
     @pot = 0
   end
@@ -43,6 +43,7 @@ class Game
     sleep(4.5)
     puts "Let's deal!"
     sleep(2)
+    init_interface
   end
 
   def render
@@ -55,6 +56,11 @@ class Game
 
   def current_player
     @players.first
+  end
+
+  def init_interface
+    @interface.human = @players.first
+    @interface.computer = @players.last
   end
 
   def new_hand
