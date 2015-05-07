@@ -49,7 +49,7 @@ class Interface
   def initialize(game, deck)
     @game = game
     @deck = deck
-    @cursor = [0, 0]
+    @cursor = 0
     @cards = [@card1, @card2, @card3, @card4, @card5]
     @final_round = false
   end
@@ -85,13 +85,35 @@ class Interface
 
 
   def render_turn
+    init_cursor
+    until @selection
+      system 'clear'
+      puts bankrolls
+      puts combine_cards(*@cards)
+      puts combine_buttons
+      puts computer_message
+      @human.get_input
+    end
+    @selection = false
     system 'clear'
-    puts bankrolls
-    puts combine_cards(*@cards)
-    puts combine_discards
-    puts computer_message
-    puts combine_buttons
-    sleep(5)
+    puts "Okay, you made a selection!"
+    render_discard
+  end
+
+  def render_discard
+    set_discard_round
+    init_cursor
+    until @selection
+      system 'clear'
+      puts bankrolls
+      puts combine_cards(*@cards)
+      puts combine_buttons
+      puts computer_message
+      @human.get_input
+    end
+    @selection = false
+    system 'clear'
+    puts "Okay, you made a selection!"
   end
 
   def render_showdown
@@ -113,12 +135,8 @@ class Interface
     combine_images(cards, 11)
   end
 
-  def combine_discards
-    combine_images(@discards, 3)
-  end
-
-  def combine_buttons
-    combine_images(@buttons, 3)
+  def combine_buttons #includes discards
+    combine_images(@cursorable, 3)
   end
 
   def set_new_turn
@@ -127,11 +145,6 @@ class Interface
     @card3 = generate_card_image(@human.cards[2])
     @card4 = generate_card_image(@human.cards[3])
     @card5 = generate_card_image(@human.cards[4])
-    @discard1 = Button.discard
-    @discard2 = Button.discard
-    @discard3 = Button.discard
-    @discard4 = Button.discard
-    @discard5 = Button.discard
     @fold = Button.fold
     @final_round = false
     init_image_groups
@@ -149,10 +162,22 @@ class Interface
     init_image_groups
   end
 
+  def set_discard_round
+    @discard_round = true
+    @discard1 = Button.discard
+    @discard2 = Button.discard
+    @discard3 = Button.discard
+    @discard4 = Button.discard
+    @discard5 = Button.discard
+    @confirm = Button.confirm
+    init_discard_buttons
+  end
+
   def set_final_round
-    @cursor = [1, 0]
+    @discard_round = false
+    init_image_groups
+    init_cursor
     @discards = []
-    @final_round = true
   end
 
   def set_showdown
@@ -182,48 +207,45 @@ class Interface
   def init_image_groups #fills in the arrays with most recent versions
     @cards = [@card1, @card2, @card3, @card4, @card5]
     @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
-    @buttons = [@bet_raise, @check_call, @fold]
     @cpu_cards = [@cpu_card1, @cpu_card2, @cpu_card3, @cpu_card4, @cpu_card5]
-    @cursorable = [@discards, @buttons]
+    @cursorable = [@bet_raise, @check_call, @fold]
+  end
+
+  def init_discard_buttons
+    @cursorable = [@discard1, @discard2, @discard3, @discard4, @discard5, @confirm]
+  end
+
+  def init_cursor
+    @cursor = 0
+    @button_cache = @cursorable.first
+    @cursorable[0] = @cursorable[0].cursor_over
   end
 
   def highlight_cursorable
-    x, y = @cursor
-    @cursorable[x][y].cursor_over
+    @button_cache = @cursorable[@cursor]
+    @cursorable[@cursor] = @cursorable[@cursor].cursor_over
   end
 
   def update_cursor(movement)
-    if movement == [1, 0] # mapping for moving down
-      if @cursor === [[0, 0], [0, 1]]
-        @cursor = [1, 0]
-      elsif @cursor == [0, 2]
-        @cursor = [1, 1]
-      else
-        @cursor = [1, 2]
-      end
-    elsif movement == [-1, 0] # mapping for moving up
-      if @cursor == [1, 0]
-        @cursor = [0, 0]
-      elsif @cursor == [1, 1]
-        @cursor = [0, 2]
-      else
-        @cursor = [0, 3]
-      end
-    else
-      x, y = @cursor
-      dx, dy = movement
-      @cursor = [x + dx, y + dy]
-    end
+    @cursorable[@cursor] = @button_cache
+    @cursor += movement
+    highlight_cursorable
   end
 
-  def combine_images(images, num_lines)
-    combined_image = []
-    num_lines.times do |i|
-      if images.any?
-        combined_image << " " +  images.map { |image| image[i] }.join(" ")
-      end
+  def make_selection
+    @selection = true
+  end
+
+  def inbounds?(dx) #depends on the state of the interface -- are there discard buttons being used?
+    (@cursor + dx).between?(0, @discard_round ? 5 : 2)
+  end
+
+  private
+
+  def combine_images(images, line_size)
+    line_size.times.with_object([]) do |i, combined_image|
+      combined_image << " " +  images.map { |img| img[i] } * " " if images.any?
     end
-    combined_image
   end
 
   def generate_card_image(card)
@@ -232,7 +254,6 @@ class Interface
     img = lookup_image(row, col)
     img = colorize_image(img, card)
     img = add_card_name(img, card)
-    img
   end
 
   def lookup_image(x, y)
@@ -264,51 +285,26 @@ class Interface
     when :d then :blue
     end
   end
-
-  def overflow?(input) #depends on the state of the interface -- are there discard buttons being used?
-    x, y = @cursor
-    dx, dy = CURSOR_MOVEMENT[input]
-    unless @final_round
-      (x + dx).between?(0, 4) && (y + dy).between?(0, 1)
-    else
-      (x + dx).between?(0, 2) && (y + dy) == 1
-    end
-  end
 end
 
 class Button < Array
-  def self.discard
-    discard = Button.new("Discard", 11, :red, :on_yellow)
-    discard << " ".rjust(11).red.on_yellow
-    discard << "Discard".center(11).red.bold.on_yellow
-    discard << " ".rjust(11).red.on_yellow
-  end
 
-  def self.bet
-    Button.custom_button("Bet")
-  end
-
-  def self.raise
-    Button.custom_button("Raise")
-  end
-
-  def self.check
-    Button.custom_button("Check")
-  end
-
-  def self.call
-    Button.custom_button("Call")
-  end
-
-  def self.fold
-    Button.custom_button("Fold")
+  def self.method_missing(m)
+    send(:custom_button, m.to_s.capitalize)
   end
 
   def self.custom_button(function)
-    bet = Button.new(function, 18, :white, :on_black)
+    bet = Button.new(function, 18, :white, :black)
     bet << " ".rjust(18).white.on_black
     bet << function.center(18).white.on_black
     bet << " ".rjust(18).white.on_black
+  end
+
+  def self.discard
+    discard = Button.new("Discard", 11, :red, :yellow)
+    discard << " ".rjust(11).red.on_yellow
+    discard << "Discard".center(11).red.bold.on_yellow
+    discard << " ".rjust(11).red.on_yellow
   end
 
   def initialize(function, just, fg, bg)
@@ -317,22 +313,19 @@ class Button < Array
     @just = just
     @fg = fg
     @bg = bg
-    @selected = false
-    @cursor_over = false
-  end
-
-  def select!
-    map!(&:swap)
-    @fg, @bg = @bg, @fg
-    @selected = @selected == true ? false : true
-    self
+    @cursored = false
   end
 
   def cursor_over
+    @cursored = @cursored == true ? false : true
+    map(&:swap)
+  end
+
+  def underline
     i = 0
     map do |el|
       i += 1
-      i == 2 ? @function.center(@just).underline.send(@fg).send(@bg) : el
+      i == 2 ? @function.center(@just).underline.send(@fg).send('on_' + @bg.to_s) : el
     end
   end
 end

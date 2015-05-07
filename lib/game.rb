@@ -7,8 +7,8 @@ require 'colorize'
 require 'io/console'
 
 class Game
-  attr_reader :stakes
-  
+  attr_reader :stakes, :interface
+
   def initialize
     @deck = Deck.new
     @interface = Interface.new(self, @deck)
@@ -24,8 +24,7 @@ class Game
   end
 
   def play
-    init_interface   # DO THIS LATER
-  #  render              UNDO THIS LATER?
+    init_interface
     until @players.any?(&:bust?)
       deal_in_players
       play_hand
@@ -62,11 +61,26 @@ class Game
   end
 
   def deal_in_players
+    #puts cards in their hands
     @players.each { |player| player.take_new_hand(@deck) }
+    #run first round
+
+    #get discards
+
+    #then round of betting
+
+    #set winner based on showdown
+
+
+  end
+
+  def round_one
+
   end
 
   def award_pot
     @winner.bankroll += @pot
+    @players.each { |player| player.current_bet = 0 }
   end
 
   def prepare_for_next_hand

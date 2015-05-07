@@ -1,10 +1,11 @@
 class Player
-  attr_accessor :bankroll
+  attr_accessor :bankroll, :current_bet
 
   def initialize(game, display)
     @bankroll = 1000
     @game = game
     @display = display
+    @current_bet = 0
   end
 
   def take_new_hand(deck)
@@ -23,6 +24,7 @@ class Player
   def bet(bb)
     raise BankrollError if bb > bankroll
     @bankroll -= bb
+    @current_bet = bb
   end
 
   def check
@@ -31,15 +33,18 @@ class Player
   def raise(bb)
     raise BankrollError if 2 * bb > bankroll
     @bankroll -= 2 * bb
+    @current_bet = 2 * bb
   end
 
   def call_bet(bet)
     raise BankrollError if bb > bankroll
     @bankroll -= bb
+    @current_bet = 0
   end
 
   def fold
-    @game.forfeit_pot(self)
+    @hand = []
+    @current_bet = 0
   end
 
 end

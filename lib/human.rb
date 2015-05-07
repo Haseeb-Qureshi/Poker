@@ -2,11 +2,9 @@ require_relative 'player'
 
 class Human < Player
   CURSOR_MOVEMENT = {
-    "\e[A" => [-1, 0],
-    "\e[B" => [1, 0],
-    "\e[C" => [0, 1],
-    "\e[D" => [0, -1],
-    "\r"   => [0, 0],
+    "\e[C" => 1,
+    "\e[D" => -1,
+    "\r"   => 0,
   }
 
   def get_input
@@ -16,8 +14,8 @@ class Human < Player
       select_something = true if valid_input?(input)
     end
     movement = CURSOR_MOVEMENT[input]
-    if movement == [0, 0]
-      @display.select!
+    if movement == 0
+      @display.make_selection
     else
       @display.update_cursor(movement)
     end
@@ -40,7 +38,7 @@ class Human < Player
 
   def valid_input?(input)
     case input
-    when "\e[A", "\e[B", "\e[C", "\e[D", "\r" then !Interface.overflow?(input)
+    when "\e[C", "\e[D", "\r" then @display.inbounds?(CURSOR_MOVEMENT[input])
     else false
     end
   end
