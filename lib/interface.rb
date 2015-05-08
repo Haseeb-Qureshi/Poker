@@ -95,8 +95,6 @@ class Interface
       @human.get_input
     end
     @selection = false
-    system 'clear'
-    puts "Okay, you made a selection!"
     render_discard
   end
 
@@ -136,7 +134,7 @@ class Interface
   end
 
   def combine_buttons #includes discards
-    combine_images(@cursorable, 3)
+    combine_images(@buttons, 3)
   end
 
   def set_new_turn
@@ -208,32 +206,33 @@ class Interface
     @cards = [@card1, @card2, @card3, @card4, @card5]
     @discards = [@discard1, @discard2, @discard3, @discard4, @discard5]
     @cpu_cards = [@cpu_card1, @cpu_card2, @cpu_card3, @cpu_card4, @cpu_card5]
-    @cursorable = [@bet_raise, @check_call, @fold]
+    @buttons = [@bet_raise, @check_call, @fold]
   end
 
   def init_discard_buttons
-    @cursorable = [@discard1, @discard2, @discard3, @discard4, @discard5, @confirm]
+    @buttons = [@discard1, @discard2, @discard3, @discard4, @discard5, @confirm]
   end
 
   def init_cursor
     @cursor = 0
-    @button_cache = @cursorable.first
-    @cursorable[0] = @cursorable[0].cursor_over
+    @button_cache = @buttons.first
+    @buttons[0] = @buttons[0].cursor_over
   end
 
-  def highlight_cursorable
-    @button_cache = @cursorable[@cursor]
-    @cursorable[@cursor] = @cursorable[@cursor].cursor_over
+  def highlight_buttons
+    @button_cache = @buttons[@cursor]
+    @buttons[@cursor] = @buttons[@cursor].cursor_over
   end
 
   def update_cursor(movement)
-    @cursorable[@cursor] = @button_cache
+    @buttons[@cursor] = @button_cache
     @cursor += movement
-    highlight_cursorable
+    highlight_buttons
   end
 
-  def make_selection
-    @selection = true
+  def get_button
+    @selection = true unless @discard_round && @cursor < 5
+    [@buttons[@cursor], @cursor]
   end
 
   def inbounds?(dx) #depends on the state of the interface -- are there discard buttons being used?
@@ -257,7 +256,7 @@ class Interface
   end
 
   def lookup_image(x, y)
-    img = CARDS_GRAPHICS[x..(x + 6)].map { |line| " " + line[y..(y + 8)] + " " }
+    CARDS_GRAPHICS[x..(x + 6)].map { |line| " " + line[y..(y + 8)] + " " }
   end
 
   def colorize_image(img, card)
@@ -288,6 +287,7 @@ class Interface
 end
 
 class Button < Array
+  attr_reader :function
 
   def self.method_missing(m)
     send(:custom_button, m.to_s.capitalize)
@@ -313,12 +313,18 @@ class Button < Array
     @just = just
     @fg = fg
     @bg = bg
-    @cursored = false
+    @underlined = false #if not underlined, change middle line to not underline?
   end
 
   def cursor_over
     @cursored = @cursored == true ? false : true
-    map(&:swap)
+    cursor_dup
+  end
+
+  def cursor_dup
+    inject(Button.new(@function, @just, @fg, @bg)) do |button, line|
+      button << line.dup.swap
+    end
   end
 
   def underline

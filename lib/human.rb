@@ -15,9 +15,20 @@ class Human < Player
     end
     movement = CURSOR_MOVEMENT[input]
     if movement == 0
-      @display.make_selection
+      register_action(*@display.get_button)
     else
       @display.update_cursor(movement)
+    end
+  end
+
+  def register_action(button, card_num)
+    case button.function
+    when 'Discard' then #set discard for whatever the cursor was set on
+    when 'Confirm' then puts "Confirm!"
+    when 'Raise', 'Bet' then puts "Raise!"
+    when 'Call' then puts "Call!"
+    when 'Check' then puts "Check!"
+    when 'Fold' then puts "Fold!"
     end
   end
 
