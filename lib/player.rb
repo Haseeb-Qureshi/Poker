@@ -47,6 +47,15 @@ class Player
     @current_bet = 0
   end
 
+  def discard
+    5.times do |i|
+      if instance_variable_get("@discard#{i}".to_sym)
+        @hand.discard(cards[i])
+        @hand.take_card
+      end
+    end
+  end
+
 end
 
 class BankrollError < StandardError

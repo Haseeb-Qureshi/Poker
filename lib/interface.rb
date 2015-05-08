@@ -82,8 +82,6 @@ class Interface
 
   #Computer AI can be implemented later. For now it will always stand pat?
 
-
-
   def render_turn
     init_cursor
     until @selection
@@ -110,6 +108,8 @@ class Interface
       @human.get_input
     end
     @selection = false
+    @human.discard
+    render_turn
     system 'clear'
     puts "Okay, you made a selection!"
   end
@@ -268,12 +268,21 @@ class Interface
     color = color_map(card.suit)
     my_value = VALUE_TO_WORD[card.value].center(11)
     of = " of".center(11)
-    my_suit = SUIT_TO_WORD[card.suit].rjust(11)
+    my_suit = card.suit
     space = " ".rjust(11)
     img << my_value.bold
     img << of.bold
-    img << my_suit.bold.colorize(color: color).underline
+    img << colorize_suit(my_suit, color)
     img << space
+  end
+
+  def colorize_suit(my_suit, color)
+    case my_suit
+    when :s  # colorize has buggy support for grayscale, so setting it manually
+      "\e[4;38;5;240m     Spades\e[0m"
+    else
+      SUIT_TO_WORD[my_suit].rjust(11).bold.colorize(color: color).underline
+    end
   end
 
   def color_map(suit)
@@ -317,11 +326,10 @@ class Button < Array
   end
 
   def cursor_over
-    @cursored = @cursored == true ? false : true
-    cursor_dup
+    duped_swap
   end
 
-  def cursor_dup
+  def duped_swap
     inject(Button.new(@function, @just, @fg, @bg)) do |button, line|
       button << line.dup.swap
     end

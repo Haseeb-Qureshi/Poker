@@ -5,6 +5,7 @@ class Human < Player
     "\e[C" => 1,
     "\e[D" => -1,
     "\r"   => 0,
+    "q"    => 10,
   }
 
   def get_input
@@ -14,16 +15,16 @@ class Human < Player
       select_something = true if valid_input?(input)
     end
     movement = CURSOR_MOVEMENT[input]
-    if movement == 0
-      register_action(*@display.get_button)
-    else
-      @display.update_cursor(movement)
+    case movement
+    when 0 then register_action(*@display.get_button)
+    when 10 then exit
+    else @display.update_cursor(movement)
     end
   end
 
   def register_action(button, card_num)
     case button.function
-    when 'Discard' then #set discard for whatever the cursor was set on
+    when 'Discard' then register_discard(card_num)
     when 'Confirm' then puts "Confirm!"
     when 'Raise', 'Bet' then puts "Raise!"
     when 'Call' then puts "Call!"
@@ -49,8 +50,15 @@ class Human < Player
 
   def valid_input?(input)
     case input
+    when 'q' then true
     when "\e[C", "\e[D", "\r" then @display.inbounds?(CURSOR_MOVEMENT[input])
     else false
     end
+  end
+
+  def register_discard(card_num)
+    instance_name = "@discard#{card_num}".to_sym
+    flipped_value = instance_variable_get(instance_name) ? false : true
+    instance_variable_set(instance_name, flipped_value)
   end
 end

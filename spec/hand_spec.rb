@@ -20,19 +20,19 @@ describe Hand do
       end
     end
 
-    describe "#discard_card" do
+    describe "#discard" do
       context "when has a card" do
         before(:each) { hand.take_card }
 
         it "should discard a card" do
-          hand.discard_card(0)
+          hand.discard(new_card)
           expect(hand.cards).to be_empty
         end
       end
 
-      context "when no card" do
+      context "when no cards" do
         it "should raise an error" do
-          expect { hand.discard_card(0) }.to raise_error
+          expect { hand.discard(new_card) }.to raise_error
         end
       end
     end

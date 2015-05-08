@@ -1,10 +1,10 @@
 GEM
   remote: https://rubygems.org/
   specs:
-    colorize (0.7.7)
+    rainbow (2.0.0)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  colorize
+  rainbow

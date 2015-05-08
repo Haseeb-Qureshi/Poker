@@ -15,7 +15,5 @@ describe Player do
 
     describe "#raise" do
     end
-
-
-
+  end
 end

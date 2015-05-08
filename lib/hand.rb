@@ -17,8 +17,8 @@ class Hand
     check_hand if @cards.count == 5
   end
 
-  def discard_card(card_pos)
-    raise NoCardError if @cards.delete_at(card_pos).nil?
+  def discard(card)
+    raise NoCardError if @cards.delete(card).nil?
   end
 
   def <=>(other_hand)
@@ -90,7 +90,7 @@ class Hand
     flush && straight
   end
 
-  #TIE_BREAKING
+  # tie breaking
 
   def break_tie_with(other_hand)
     case @hand_rank
@@ -125,12 +125,9 @@ class Hand
   end
 
   def multiple_pair_comparison(other_hand)
-    our_pairs = ranks.select do |rank|
-      ranks.count(rank) > 1
-    end.sort!
-    their_pairs = other_hand.ranks.select do |rank|
-      other_hand.ranks.count(rank) > 1
-    end.sort!
+    our_pairs = ranks.select { |rank| ranks.count(rank) > 1 }.sort!
+    their_pairs = other_hand.ranks.select { other_hand.ranks.count(rank) > 1 }
+      .sort!
 
     case our_pairs.last <=> their_pairs.last
     when 1 then 1
@@ -139,8 +136,7 @@ class Hand
       case our_pairs.first <=> their_pairs.first
       when 1 then 1
       when -1 then -1
-      else
-        ranks - our_pairs <=> other_hand.ranks - their_pairs
+      else ranks - our_pairs <=> other_hand.ranks - their_pairs
       end
     end
   end
