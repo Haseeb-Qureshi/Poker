@@ -11,8 +11,8 @@ def parse(str)
   each_card.each_with_object([]) do |card, cards|
     val = card[0]
     val = HAND_VALUES[val.to_sym] ? HAND_VALUES[val.to_sym] : val.to_i
-    suit = card[1].to_sym
-    cards << double('card', value: val, suit: suit)
+    suit = card[1].downcase.to_sym
+    cards << Card.new(val, suit) # change this back to a double later
   end
 end
 

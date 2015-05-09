@@ -67,8 +67,8 @@ class Hand
   end
 
   def straight
-    start = @cards.first.value
-    ranks == (start..start + 4).to_a
+    start = ranks.sort.first
+    ranks.sort == (start..start + 4).to_a
   end
 
   def flush
@@ -126,7 +126,7 @@ class Hand
 
   def multiple_pair_comparison(other_hand)
     our_pairs = ranks.select { |rank| ranks.count(rank) > 1 }.sort!
-    their_pairs = other_hand.ranks.select { other_hand.ranks.count(rank) > 1 }
+    their_pairs = other_hand.ranks.select { |rank| other_hand.ranks.count(rank) > 1 }
       .sort!
 
     case our_pairs.last <=> their_pairs.last
