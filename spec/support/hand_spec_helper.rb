@@ -12,7 +12,7 @@ def parse(str)
     val = card[0]
     val = HAND_VALUES[val.to_sym] ? HAND_VALUES[val.to_sym] : val.to_i
     suit = card[1].downcase.to_sym
-    cards << Card.new(val, suit) # change this back to a double later
+    cards << double('card', value: val, suit: suit)
   end
 end
 
