@@ -29,13 +29,13 @@ class Hand
     end
   end
 
-  def ranks
-    @cards.map(&:value)
+  def ranks #this returns a sorted array of each card's value (2-14, where ace is 14)
+    @cards.map(&:value).sort
   end
 
   private
 
-  def check_hand
+  def check_hand # is called whenever cards have changed
     @hand_rank = 1 if high_card
     @hand_rank = 2 if pair
     @hand_rank = 3 if two_pair
@@ -61,18 +61,17 @@ class Hand
 
   def trips
     @cards.inject(Hash.new(0)) do |counts, card|
-      counts[card.value] += 1
-      counts
+      counts.tap { |c| c[card.value] += 1 }
     end.values.max == 3
   end
 
   def straight
-    start = ranks.sort.first
-    ranks.sort == (start..start + 4).to_a || ranks.sort == [2, 3, 4, 5, 14]
+    start = ranks.first
+    ranks == (start..start + 4).to_a || ranks == [2, 3, 4, 5, 14]
   end
 
   def flush
-    @cards.map(&:suit).uniq.size == 1
+    @cards.map(&:suit).uniq.one?
   end
 
   def full_house
@@ -81,8 +80,7 @@ class Hand
 
   def quads
     @cards.inject(Hash.new(0)) do |counts, card|
-      counts[card.value] += 1
-      counts
+      counts.tap { |c| c[card.value] += 1 }
     end.values.max == 4
   end
 
@@ -94,7 +92,9 @@ class Hand
 
   def break_tie_with(other_hand)
     case @hand_rank
+      # high card, straight, flush, and straight flush
     when 1, 5, 6, 9 then high_card_comparison(other_hand)
+      # one-pair, trips, or four-of-a-kind (quads)
     when 2, 4, 8 then single_pair_comparison(other_hand)
     when 3 then two_pair_comparison(other_hand)
     when 7 then full_house_comparison(other_hand)
@@ -103,10 +103,10 @@ class Hand
 
   def high_card_comparison(other_hand)
     val1 = 0
-    ranks.sort.each_with_index { |rank, i| val1 += rank * (10 ** i) }
+    ranks.each_with_index { |rank, i| val1 += rank * (10 ** i) }
 
     val2 = 0
-    other_hand.ranks.sort.each_with_index { |rank, j| val2 += rank * (10 ** j) }
+    other_hand.ranks.each_with_index { |rank, j| val2 += rank * (10 ** j) }
 
     val1 <=> val2
   end
@@ -143,8 +143,8 @@ class Hand
   end
 
   def full_house_comparison(other_hand)
-    my_trips = ranks.sort[2]
-    their_trips = other_hand.ranks.sort[2]
+    my_trips = ranks[2]
+    their_trips = other_hand.ranks[2]
     case my_trips <=> their_trips
     when 1 then 1
     when -1 then -1
