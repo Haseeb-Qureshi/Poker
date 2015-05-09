@@ -138,6 +138,12 @@ describe Hand do
           expect(big_full).to be > a_full_house
         end
 
+        specify "bigger full house(2nd) beats lower full house(2nd)" do
+          full = Hand.new(parse('8h8c8dKdKh'))
+          bigger_full = Hand.new(parse('9h9c9d4d4h'))
+          expect(bigger_full).to be > full
+        end
+
         specify "pair with higher kicker beats one with lower kicker" do
           low_kick_pair = Hand.new(parse('4h4s3h5d6h'))
           expect(a_pair).to be > low_kick_pair

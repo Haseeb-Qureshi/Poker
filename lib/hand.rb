@@ -68,7 +68,7 @@ class Hand
 
   def straight
     start = ranks.sort.first
-    ranks.sort == (start..start + 4).to_a
+    ranks.sort == (start..start + 4).to_a || ranks.sort == [2, 3, 4, 5, 14]
   end
 
   def flush
@@ -96,7 +96,8 @@ class Hand
     case @hand_rank
     when 1, 5, 6, 9 then high_card_comparison(other_hand)
     when 2, 4, 8 then single_pair_comparison(other_hand)
-    when 3, 7 then multiple_pair_comparison(other_hand)
+    when 3 then two_pair_comparison(other_hand)
+    when 7 then full_house_comparison(other_hand)
     end
   end
 
@@ -124,7 +125,7 @@ class Hand
     our_pair <=> their_pair
   end
 
-  def multiple_pair_comparison(other_hand)
+  def two_pair_comparison(other_hand)
     our_pairs = ranks.select { |rank| ranks.count(rank) > 1 }.sort!
     their_pairs = other_hand.ranks.select { |rank| other_hand.ranks.count(rank) > 1 }
       .sort!
@@ -138,6 +139,19 @@ class Hand
       when -1 then -1
       else ranks - our_pairs <=> other_hand.ranks - their_pairs
       end
+    end
+  end
+
+  def full_house_comparison(other_hand)
+    my_trips = ranks.sort[2]
+    their_trips = other_hand.ranks.sort[2]
+    case my_trips <=> their_trips
+    when 1 then 1
+    when -1 then -1
+    else
+      my_pair = ranks.reject { |rank| rank == my_trips }.uniq.first
+      their_pair = other_hand.ranks.reject { |rank| rank == their_trips }.uniq.first
+      my_pair <=> their_pair
     end
   end
 
