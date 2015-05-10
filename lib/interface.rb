@@ -162,11 +162,11 @@ class Interface
 
   def set_discard_round
     @discard_round = true
-    @discard1 = Button.discard
-    @discard2 = Button.discard
-    @discard3 = Button.discard
-    @discard4 = Button.discard
-    @discard5 = Button.discard
+    @discard1 = Button.discard(0)
+    @discard2 = Button.discard(1)
+    @discard3 = Button.discard(2)
+    @discard4 = Button.discard(3)
+    @discard5 = Button.discard(4)
     @confirm = Button.confirm
     init_discard_buttons
   end
@@ -230,9 +230,9 @@ class Interface
     highlight_buttons
   end
 
-  def get_button
+  def press_button!
     @selection = true unless @discard_round && @cursor < 5
-    [@buttons[@cursor], @cursor]
+    @buttons[@cursor]
   end
 
   def inbounds?(dx) #depends on the state of the interface -- are there discard buttons being used?
@@ -296,7 +296,7 @@ class Interface
 end
 
 class Button < Array
-  attr_reader :function
+  attr_reader :function, :card_num
 
   def self.method_missing(m)
     send(:custom_button, m.to_s.capitalize)
@@ -309,19 +309,20 @@ class Button < Array
     bet << " ".rjust(18).white.on_black
   end
 
-  def self.discard
-    discard = Button.new("Discard", 11, :red, :yellow)
+  def self.discard(card_num)
+    discard = Button.new("Discard", 11, :red, :yellow, card_num)
     discard << " ".rjust(11).red.on_yellow
     discard << "Discard".center(11).red.bold.on_yellow
     discard << " ".rjust(11).red.on_yellow
   end
 
-  def initialize(function, just, fg, bg)
+  def initialize(function, just, fg, bg, card_num = nil)
     super()
     @function = function
     @just = just
     @fg = fg
     @bg = bg
+    @card_num = card_num
     @underlined = false #if not underlined, change middle line to not underline?
   end
 
@@ -330,7 +331,7 @@ class Button < Array
   end
 
   def duped_swap
-    inject(Button.new(@function, @just, @fg, @bg)) do |button, line|
+    inject(Button.new(@function, @just, @fg, @bg, @card_num)) do |button, line|
       button << line.dup.swap
     end
   end

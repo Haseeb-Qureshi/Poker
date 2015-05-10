@@ -5,7 +5,7 @@ class Human < Player
     "\e[C" => 1,
     "\e[D" => -1,
     "\r"   => 0,
-    "q"    => 10,
+    "q"    => 0,
   }
 
   def get_input
@@ -14,17 +14,18 @@ class Human < Player
       input = read_char
       select_something = true if valid_input?(input)
     end
+    exit if input == 'q'
     movement = CURSOR_MOVEMENT[input]
     case movement
-    when 0 then register_action(*@display.get_button)
-    when 10 then exit
+    when 0 then register_action(@display.press_button!)
     else @display.update_cursor(movement)
     end
   end
 
-  def register_action(button, card_num)
+  def register_action(button)
+    p button.instance_variables
     case button.function
-    when 'Discard' then register_discard(card_num)
+    when 'Discard' then register_discard(button.card_num); p instance_variables.map { |var| [var, instance_variable_get(var)] }
     when 'Confirm' then puts "Confirm!"
     when 'Raise', 'Bet' then puts "Raise!"
     when 'Call' then puts "Call!"

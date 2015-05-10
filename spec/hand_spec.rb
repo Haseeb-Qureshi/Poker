@@ -1,6 +1,5 @@
 require 'hand'
 require_relative 'support/hand_spec_helper'
-require_relative 'support/converted_hands'
 
 describe Hand do
   describe "card functions" do

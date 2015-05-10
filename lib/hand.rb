@@ -29,7 +29,7 @@ class Hand
     end
   end
 
-  def ranks #returns a sorted array of each card's value (2-14, where ace is 14)
+  def ranks # sorted array of each card's value (2-14, where ace is 14)
     @ranks ||= @cards.map(&:value).sort
   end
 
@@ -95,9 +95,9 @@ class Hand
 
   def break_tie_with(other_hand)
     case @hand_rank
-      # high card, straight, flush, and straight flush
+      # when high card, straight, flush, and straight flush
     when 1, 5, 6, 9 then high_card_comparison(other_hand)
-      # one-pair, trips, or four-of-a-kind (quads)
+      # when one-pair, trips, or four-of-a-kind/quads
     when 2, 4, 8 then single_pair_comparison(other_hand)
     when 3 then two_pair_comparison(other_hand)
     when 7 then full_house_comparison(other_hand)
