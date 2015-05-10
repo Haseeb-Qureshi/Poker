@@ -29,13 +29,14 @@ class Hand
     end
   end
 
-  def ranks #this returns a sorted array of each card's value (2-14, where ace is 14)
-    @cards.map(&:value).sort
+  def ranks #returns a sorted array of each card's value (2-14, where ace is 14)
+    @ranks ||= @cards.map(&:value).sort
   end
 
   private
 
-  def check_hand # is called whenever cards have changed
+  def check_hand # called whenever cards have changed
+    @ranks = nil
     @hand_rank = 1 if high_card
     @hand_rank = 2 if pair
     @hand_rank = 3 if two_pair
@@ -60,9 +61,7 @@ class Hand
   end
 
   def trips
-    @cards.inject(Hash.new(0)) do |counts, card|
-      counts.tap { |c| c[card.value] += 1 }
-    end.values.max == 3
+    biggest_pairs_num == 3
   end
 
   def straight
@@ -79,13 +78,17 @@ class Hand
   end
 
   def quads
-    @cards.inject(Hash.new(0)) do |counts, card|
-      counts.tap { |c| c[card.value] += 1 }
-    end.values.max == 4
+    biggest_pairs_num == 4
   end
 
   def straight_flush
     flush && straight
+  end
+
+  def biggest_pairs_num
+    @cards.inject(Hash.new(0)) do |counts, card|
+      counts.tap { |c| c[card.value] += 1 }
+    end.values.max
   end
 
   # tie breaking
@@ -102,13 +105,13 @@ class Hand
   end
 
   def high_card_comparison(other_hand)
-    val1 = 0
-    ranks.each_with_index { |rank, i| val1 += rank * (10 ** i) }
+    other_ranks = other_hand.ranks.reverse
+    my_ranks = ranks.reverse
+    my_ranks.each_with_index do |my_rank, i|
+      return my_rank <=> other_ranks[i] unless (my_rank <=> other_ranks[i]) == 0
+    end
 
-    val2 = 0
-    other_hand.ranks.each_with_index { |rank, j| val2 += rank * (10 ** j) }
-
-    val1 <=> val2
+    0
   end
 
   def single_pair_comparison(other_hand)
